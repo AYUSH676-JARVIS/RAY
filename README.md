@@ -1,6 +1,6 @@
 # RAY — Merchant Revenue Recovery Control Plane
 
-[![Build & Verification Status](https://img.shields.io/badge/CI%2FCD-passing-emerald?style=flat-square&logo=githubactions)](https://github.com/ayushtripathi/Ray/actions)
+[![Build & Verification Status](https://img.shields.io/badge/CI%2FCD-passing-emerald?style=flat-square&logo=githubactions)](https://github.com/AYUSH676-JARVIS/RAY/actions)
 [![Pytest Suite](https://img.shields.io/badge/pytest-334%20passed-emerald?style=flat-square&logo=pytest)](file:///Users/ayushtripathi/Ray/tests)
 [![Financial Invariants](https://img.shields.io/badge/invariants-54%20passed-emerald?style=flat-square)](file:///Users/ayushtripathi/Ray/tests/invariants)
 [![Failure & Concurrency](https://img.shields.io/badge/concurrency-31%20passed-emerald?style=flat-square)](file:///Users/ayushtripathi/Ray/tests/concurrency)
