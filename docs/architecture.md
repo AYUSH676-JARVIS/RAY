@@ -1,30 +1,30 @@
 # RAY Merchant Revenue Recovery Control Plane — Technical Architecture & Engineering Specifications
 
-> **System Overview:** Institutional-grade revenue recovery and transaction intelligence platform designed for high-volume merchant acquiring environments.
+> **System Overview:** Revenue recovery and transaction control plane designed for deterministic payment retry and remediation workflows.
 
 ---
 
 ## 1. High-Level System Architecture
 
 ```mermaid
-graph TD
-    Client([Merchant Web Console / Browser]) <-->|HTTPS / TLS 1.3| NGINX[NGINX Reverse Proxy :80/:443]
-    ExternalGW([Acquiring Gateways / Razorpay]) <-->|HMAC Webhooks & REST| NGINX
+flowchart TD
+    Client["Merchant Web Console"] -->|"HTTPS traffic"| NGINX["NGINX Reverse Proxy"]
+    ExternalGW["Acquiring Gateways"] -->|"HMAC Webhooks"| NGINX
 
-    subgraph DOCKER_COMPOSE["Ray Isolated Network (ray_network)"]
-        NGINX -->|Route / | WebApp[Next.js 16 Web Console :3000]
-        NGINX -->|Route /api/ | API[FastAPI Control Plane Node :8000]
+    subgraph RayNetwork ["Ray Isolated Network"]
+        NGINX -->|"Route /"| WebApp["Next.js Web Console"]
+        NGINX -->|"Route /api"| API["FastAPI Control Plane"]
 
-        subgraph BACKEND_SERVICES["Backend Domain Layer"]
-            API -->|ACID Transactions| DB[(PostgreSQL 16 Engine :5432)]
-            Worker[Outbox Worker Daemon] -->|Poll Outbox SKIP LOCKED| DB
-            Worker -->|Idempotent Gateway Dispatch| GatewayAdapter[Gateway Adapter Boundary]
+        subgraph BackendServices ["Backend Domain Layer"]
+            API -->|"ACID Transactions"| DB[("PostgreSQL 16 Engine")]
+            Worker["Outbox Worker Daemon"] -->|"Poll Outbox SKIP LOCKED"| DB
+            Worker -->|"Idempotent Gateway Dispatch"| GatewayAdapter["Gateway Adapter Boundary"]
         end
     end
 
-    GatewayAdapter -.->|Mode: SIMULATION| SimEngine[Internal Simulation Engine]
-    GatewayAdapter -.->|Mode: SANDBOX| RzpSandbox[Razorpay Sandbox API]
-    GatewayAdapter -.->|Mode: LIVE (Strict Opt-In)| RzpLive[Razorpay Live API]
+    GatewayAdapter -.->|"Simulation mode"| SimEngine["Internal Simulation Engine"]
+    GatewayAdapter -.->|"Sandbox test mode"| RzpSandbox["Razorpay Sandbox API"]
+    GatewayAdapter -.->|"Live mode with dual authorization"| RzpLive["Razorpay Live API"]
 ```
 
 ---
