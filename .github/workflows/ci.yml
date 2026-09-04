@@ -203,11 +203,21 @@ jobs:
           cache: "npm"
           cache-dependency-path: apps/web/package-lock.json
 
-      - name: Install Web Dependencies & Playwright
+      - name: Install Web Dependencies
         run: |
           npm install --prefix apps/web
           npm install --prefix apps/web --no-save @tailwindcss/oxide-linux-x64-gnu@4.3.3 lightningcss-linux-x64-gnu@1.32.0
-          npx --prefix apps/web playwright install --with-deps chromium
+
+      - name: Cache Playwright Chromium
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('apps/web/package-lock.json') }}
+
+      - name: Install Playwright Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx --prefix apps/web playwright install chromium
 
       - name: Start API and Web Server
         env:
