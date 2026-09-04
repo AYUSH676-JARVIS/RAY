@@ -140,7 +140,9 @@ jobs:
           cache-dependency-path: apps/web/package-lock.json
 
       - name: Install Frontend Dependencies
-        run: npm ci
+        run: |
+          npm ci
+          npm install --no-save lightningcss-linux-x64-gnu@1.32.0
 
       - name: Run npm Audit
         run: npm audit --audit-level=high
@@ -203,6 +205,7 @@ jobs:
       - name: Install Web Dependencies & Playwright
         run: |
           npm ci --prefix apps/web
+          npm install --prefix apps/web --no-save lightningcss-linux-x64-gnu@1.32.0
           npx --prefix apps/web playwright install --with-deps chromium
 
       - name: Start API and Web Server
@@ -275,4 +278,5 @@ jobs:
         run: |
           docker build -f deploy/Dockerfile.api -t ray-api:ci .
           docker build -f deploy/Dockerfile.worker -t ray-worker:ci .
+          docker build -f deploy/Dockerfile.web -t ray-web:ci .
           echo "Production Docker images built successfully."

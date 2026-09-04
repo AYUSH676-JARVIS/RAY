@@ -32,15 +32,15 @@ class QueueTaskModel(Base):
     merchant_id = Column(Uuid(as_uuid=True), ForeignKey("merchants.id", ondelete="CASCADE"), nullable=True, index=True)
     task_name = Column(String(128), nullable=False, index=True)
     payload_json = Column(Text, nullable=False)
-    status = Column(String(32), default="PENDING", index=True)  # PENDING, PROCESSING, COMPLETED, FAILED, DEAD_LETTER
-    priority = Column(Integer, default=0, index=True)
-    retry_count = Column(Integer, default=0)
-    max_retries = Column(Integer, default=5)
+    status = Column(String(32), default="PENDING", nullable=False, index=True)  # PENDING, PROCESSING, COMPLETED, FAILED, DEAD_LETTER
+    priority = Column(Integer, default=0, nullable=False, index=True)
+    retry_count = Column(Integer, default=0, nullable=False)
+    max_retries = Column(Integer, default=5, nullable=False)
     last_error = Column(Text, nullable=True)
-    scheduled_for = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), index=True)
+    scheduled_for = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=True, index=True)
     locked_until = Column(DateTime(timezone=True), nullable=True)
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
 
 
 class QueueTask(BaseModel):
