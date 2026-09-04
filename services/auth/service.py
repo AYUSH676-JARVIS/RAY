@@ -146,11 +146,24 @@ def get_current_principal(
             if m:
                 target_merchant_id = m.id
             else:
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Authentication rejected: No merchant exists to bind test token.",
-                    headers={"WWW-Authenticate": "Bearer"},
+                # In test / non-production environment: auto-provision default test merchant
+                default_id = uuid.UUID("00000000-0000-0000-0000-000000000001")
+                m = Merchant(
+                    id=default_id,
+                    name="Default Test Merchant",
+                    slug="default_test_merchant",
+                    status="ACTIVE",
+                    settings_json="{}",
                 )
+                db.add(m)
+                try:
+                    db.commit()
+                    db.refresh(m)
+                    target_merchant_id = m.id
+                except Exception:
+                    db.rollback()
+                    m = db.query(Merchant).first()
+                    target_merchant_id = m.id if m else default_id
 
         perms = set(ROLE_PERMISSIONS.get(target_role, set()))
         return Principal(
