@@ -1,0 +1,109 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ray_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ray_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be explicitly provided in production environment}
+      POSTGRES_DB: ${POSTGRES_DB:-ray_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ray_user} -d ${POSTGRES_DB:-ray_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ray_internal
+
+  migration:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.api
+    container_name: ray_migration
+    restart: "no"
+    command: ["alembic", "upgrade", "head"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-ray_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ray_db}
+      ENVIRONMENT: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ray_internal
+
+  api:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.api
+    container_name: ray_api
+    restart: always
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-ray_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ray_db}
+      ENVIRONMENT: production
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?JWT_SECRET_KEY must be explicitly provided in production environment}
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET:-}
+      RAZORPAY_WEBHOOK_SECRET: ${RAZORPAY_WEBHOOK_SECRET:?RAZORPAY_WEBHOOK_SECRET must be explicitly provided in production environment}
+      STAGE_1_SAFETY_LOCK: ${STAGE_1_SAFETY_LOCK:-true}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migration:
+        condition: service_completed_successfully
+    networks:
+      - ray_internal
+
+  worker:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.worker
+    container_name: ray_worker
+    restart: always
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-ray_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ray_db}
+      ENVIRONMENT: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migration:
+        condition: service_completed_successfully
+    networks:
+      - ray_internal
+
+  web:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.web
+    container_name: ray_web
+    restart: always
+    environment:
+      NEXT_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:-}
+    depends_on:
+      - api
+    networks:
+      - ray_internal
+
+  nginx:
+    image: nginx:alpine
+    container_name: ray_nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./deploy/nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - api
+      - web
+    networks:
+      - ray_internal
+
+volumes:
+  postgres_data:
+
+networks:
+  ray_internal:
+    driver: bridge

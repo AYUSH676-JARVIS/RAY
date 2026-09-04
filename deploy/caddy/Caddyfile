@@ -1,0 +1,55 @@
+# RAY — Caddyfile Configuration (Automatic TLS & Reverse Proxy)
+# Use for rapid zero-config local staging and Let's Encrypt automated certificate management.
+
+{
+    email ops@ray-recovery.internal
+    admin off
+}
+
+http://localhost, http://ray.local {
+    redir https://{host}{uri} permanent
+}
+
+https://localhost, https://ray.local {
+    tls internal
+
+    header {
+        Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+
+    # Inbound Webhooks
+    handle /api/v1/webhooks/* {
+        reverse_proxy api:8000 {
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+
+    # Core REST API
+    handle /api/* {
+        reverse_proxy api:8000 {
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+
+    handle /health* {
+        reverse_proxy api:8000
+    }
+
+    handle /metrics* {
+        @blocked not client_ip 127.0.0.1 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
+        respond @blocked "Forbidden" 403
+        reverse_proxy api:8000
+    }
+
+    # Web Dashboard
+    handle {
+        reverse_proxy web:3000
+    }
+}

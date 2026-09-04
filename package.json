@@ -1,0 +1,16 @@
+{
+  "name": "ray",
+  "version": "1.0.0",
+  "private": true,
+  "description": "RAY — Merchant Money Intelligence Engine",
+  "workspaces": [
+    "apps/web"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --prefix apps/web",
+    "build:web": "npm run build --prefix apps/web",
+    "e2e": "npm run e2e --prefix apps/web",
+    "e2e:ui": "npm run e2e:ui --prefix apps/web",
+    "e2e:report": "npm run e2e:report --prefix apps/web"
+  }
+}

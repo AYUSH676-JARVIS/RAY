@@ -1,0 +1,33 @@
+# ==============================================================================
+# Gitleaks Configuration for RAY Control Plane
+# Standard: Strict secret detection with documented, narrow exclusions for
+#           generated build artifacts and demonstrably synthetic test fixtures.
+# ==============================================================================
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Narrow exclusions for generated artifacts and exact synthetic test fixtures"
+
+# 1. Generated Build Artifacts:
+# Next.js compilation outputs ephemeral preview/RSC signing hashes into .next/ on every build.
+# These directories are gitignored and represent build outputs, not source code.
+paths = [
+    '''apps/web/\.next/''',
+    '''\.next/''',
+]
+
+# 2. Exact Synthetic Test Fixtures (Narrowly Anchored):
+# Only the exact, immutable fixture tokens used in unit/invariant tests are permitted.
+# Broad wildcard prefixes (e.g. `idem_.*`) are strictly prohibited to ensure any
+# unexpected or future credentials remain fully detectable.
+regexes = [
+    '''^idem_stale_policy_race_001$''',
+    '''^idem_test_policy_rejected_001$''',
+    '''^idem_sequential_duplicate_001$''',
+    '''^idem_analyst_exec_001$''',
+    '''^idem_valid_key_12345$''',
+    '''^idem_key_safe_12345$''',
+    '''^test_dummy_api_key_123456789$''',
+]
