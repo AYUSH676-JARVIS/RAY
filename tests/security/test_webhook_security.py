@@ -22,6 +22,7 @@ import json
 import time
 import uuid
 from decimal import Decimal
+from typing import Optional
 import pytest
 from fastapi.testclient import TestClient
 
@@ -98,7 +99,9 @@ def test_merchant_and_payment():
         return str(merchant.id), str(payment.id)
 
 
-def compute_sig(body: bytes, secret: str = "ray_dev_webhook_secret_key_998877") -> str:
+def compute_sig(body: bytes, secret: Optional[str] = None) -> str:
+    if secret is None:
+        secret = WebhookSecurityVerifier.get_gateway_secret("razorpay")
     return hmac.new(secret.encode("utf-8"), body, hashlib.sha256).hexdigest()
 
 

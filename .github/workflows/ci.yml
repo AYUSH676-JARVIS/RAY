@@ -68,7 +68,7 @@ jobs:
         env:
           DATABASE_URL: postgresql+psycopg://postgres:password@localhost:5432/ray_db
           ENVIRONMENT: test
-          RAZORPAY_WEBHOOK_SECRET: rzp_test_webhook_secret_key_123456
+          RAZORPAY_WEBHOOK_SECRET: ray_dev_webhook_secret_key_998877
         run: |
           pytest tests/invariants/ -v
 
@@ -76,7 +76,7 @@ jobs:
         env:
           DATABASE_URL: postgresql+psycopg://postgres:password@localhost:5432/ray_db
           ENVIRONMENT: test
-          RAZORPAY_WEBHOOK_SECRET: rzp_test_webhook_secret_key_123456
+          RAZORPAY_WEBHOOK_SECRET: ray_dev_webhook_secret_key_998877
         run: |
           pytest tests/failure/ tests/concurrency/ -v
 
@@ -84,7 +84,7 @@ jobs:
         env:
           DATABASE_URL: postgresql+psycopg://postgres:password@localhost:5432/ray_db
           ENVIRONMENT: test
-          RAZORPAY_WEBHOOK_SECRET: rzp_test_webhook_secret_key_123456
+          RAZORPAY_WEBHOOK_SECRET: ray_dev_webhook_secret_key_998877
         run: |
           pytest -v tests/
 
@@ -141,7 +141,9 @@ jobs:
           cache-dependency-path: apps/web/package-lock.json
 
       - name: Install Frontend Dependencies
-        run: npm install
+        run: |
+          npm install
+          npm install lightningcss-linux-x64-gnu@1.32.0 --no-save
 
       - name: Run npm Audit
         run: npm audit --audit-level=high
@@ -204,6 +206,7 @@ jobs:
       - name: Install Web Dependencies & Playwright
         run: |
           npm install --prefix apps/web
+          npm install --prefix apps/web lightningcss-linux-x64-gnu@1.32.0 --no-save
           npx --prefix apps/web playwright install --with-deps chromium
 
       - name: Start API and Web Server
