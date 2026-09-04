@@ -48,6 +48,7 @@ from services.money_graph.models import (
     ActorType,
     Payment,
     PaymentAttempt,
+    PaymentFailure,
     PaymentStatus,
     PolicyDecision,
     PolicyDecisionType,

@@ -10,7 +10,7 @@ No AI agent can bypass the policy engine.
 from __future__ import annotations
 
 import decimal
-from typing import Dict, Tuple
+from typing import Dict, Optional, Tuple
 from services.money_graph.models import FailureCategory, PolicyDecisionType
 
 

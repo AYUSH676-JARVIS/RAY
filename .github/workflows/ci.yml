@@ -97,11 +97,18 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install Gitleaks
+        run: |
+          LATEST_VERSION="8.24.0"
+          curl -sSL -o /tmp/gitleaks.tar.gz "https://github.com/gitleaks/gitleaks/releases/download/v${LATEST_VERSION}/gitleaks_${LATEST_VERSION}_linux_x64.tar.gz"
+          tar -xzf /tmp/gitleaks.tar.gz -C /tmp
+          sudo mv /tmp/gitleaks /usr/local/bin/gitleaks
+          gitleaks version
+
       - name: Gitleaks Secrets Audit
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        continue-on-error: false
+        run: |
+          gitleaks dir . --redact --verbose
+          gitleaks git --redact --verbose
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -205,12 +212,27 @@ jobs:
           PORT: 8000
         run: |
           nohup uvicorn apps.api.main:app --host 127.0.0.1 --port 8000 > api.log 2>&1 &
-          sleep 3
-          curl -f http://127.0.0.1:8000/health
+          for i in $(seq 1 30); do
+            if curl -s -f http://127.0.0.1:8000/health > /dev/null; then
+              echo "API is healthy!"
+              break
+            fi
+            echo "Waiting for API... ($i/30)"
+            sleep 1
+          done
+          curl -f http://127.0.0.1:8000/health || (cat api.log && exit 1)
+
           npm run build --prefix apps/web
           PORT=3000 nohup npm start --prefix apps/web > web.log 2>&1 &
-          sleep 4
-          curl -f http://127.0.0.1:3000
+          for i in $(seq 1 30); do
+            if curl -s -f http://127.0.0.1:3000 > /dev/null; then
+              echo "Web server is healthy!"
+              break
+            fi
+            echo "Waiting for Web... ($i/30)"
+            sleep 1
+          done
+          curl -f http://127.0.0.1:3000 || (cat web.log && exit 1)
 
       - name: Run Playwright E2E Test Suite
         env:

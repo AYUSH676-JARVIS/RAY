@@ -11,7 +11,7 @@ from __future__ import annotations
 import decimal
 import uuid
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 from pydantic import BaseModel, Field
 
 from services.money_graph.models import PolicyDecisionType
