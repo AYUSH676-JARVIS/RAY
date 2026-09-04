@@ -143,7 +143,7 @@ jobs:
       - name: Install Frontend Dependencies
         run: |
           npm install
-          npm install lightningcss-linux-x64-gnu@1.32.0 --no-save
+          npm install --no-save @tailwindcss/oxide-linux-x64-gnu@4.3.3 lightningcss-linux-x64-gnu@1.32.0
 
       - name: Run npm Audit
         run: npm audit --audit-level=high
@@ -206,7 +206,7 @@ jobs:
       - name: Install Web Dependencies & Playwright
         run: |
           npm install --prefix apps/web
-          npm install --prefix apps/web lightningcss-linux-x64-gnu@1.32.0 --no-save
+          npm install --prefix apps/web --no-save @tailwindcss/oxide-linux-x64-gnu@4.3.3 lightningcss-linux-x64-gnu@1.32.0
           npx --prefix apps/web playwright install --with-deps chromium
 
       - name: Start API and Web Server
